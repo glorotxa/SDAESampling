@@ -1,0 +1,76 @@
+Step to install:
+
+**** To install liblinear locally: do make in the pyliblinear folder.
+
+**** add the folder pyliblinear/python to your PYTHONPATH
+
+**** in pyliblinear/python/linear.py: hard code the path line 19 to your /pyliblinear/liblinear.so.1 file
+
+**** in DAESampling.py line 14: hard code your /pyliblinear/python/ path
+
+
+
+
+You can run an experiment on machine of the lab, or on condor:
+
+
+
+the different parameters of the experiment script:
+
+------path_data: (path to the training data file) 
+
+for the small amazon: amazon/all-domain-lab_unlab-#N.vec   [#N being the number of input dimensions (I have created: 50 (for fast testing), 5000,10000,25000,50000)]
+for the big amazon: fullamazon/pylibsvm-data/all-domain-train-featsz=#N.vec  [#N, the input dimension should be: 50,5000,25000,50000,100000 (!!!)]
+
+-----path_data_test: (path to the test data file)
+
+for the small amazon: amazon/pylibsvm-data/all-domain-test-#N.vec   [#N being the number of input dimensions (I have created: 50 (for fast testing), 5000,10000,25000,50000)]
+for the big amazon: fullamazon/pylibsvm-data/in-domain-test-selected-featsz=#N.vec  [#N, the input dimension should be: 50,5000,25000,50000,100000 (!!!)]
+
+----seed : the seed
+
+----zeros=0.8 (the default I use): the masking by zeros percentage in the corruption noise
+
+----ones=0.013 (for 5000) or 0.0035 (for 25000) (the default I use): the adding one percentage in the corruption noise
+
+----n_inp: number of input dimension
+
+----n_hid: number of hidden units (I use 5000)
+
+----lr: unsupervised learning rate
+
+----pattern: sampling pattern -> 'inp' (ones in inputs + random) or 'inpnoise' (ones in inputs + added noise ones + random) or 'noise' (where we corrupt + random) or None (for no sampling). I only use inpnoise and None (for dense experiments)
+
+----ratio: ratio of reconstruction units to sample randomly
+
+----batchsize: 10 (training batchsize)
+
+----batchsizeerr: 1600 for small amazon 1139 for big amazon
+
+----nepochs: number of mazimum unsupervised training epochs
+
+----epochs: list of epochs to do test reconstruction and svm evaluation on.
+
+----cost: 'CE' or 'MSE' ('CE' is the best)
+
+----act: 'rect' or 'sigmoid' ('rect' is the best)
+
+----scaling = False (no scaling in the cost to unbiased it) or tuple of the form: (weights on 1,weights on 0)
+
+----small= True (if you use the small amazon) or False (if it is the big one)
+
+----regcoef L1 regularization coefficient (at the moment I put it to 0)
+
+----folds=5 (number of folds for SVM training (max 5))
+
+----dense_size = 7000 for small amazon 2278 for the big one (only used for dense experiment)
+
+example of fast test for sparse experiment:
+
+THEANO_FLAGS=device=cpu,floatX=float32 jobman cmdline DAESampling.SamplingsparseSDAEexp seed=1 path_data=amazon/all-domain-lab_unlab-50.vec ninputs=50  path_data_test=amazon/all-domain-test-50.vec zeros=0.8 ones=0.013 n_inp=50 n_hid=50 lr=0.01 pattern='inpnoise' ratio=0.02 scaling=False batchsize=10 batchsizeerr=1600 nepochs=10 epochs=[1,5,10] small=True regcoef=0. folds=2 act='rect' cost='CE' dense_size=7000
+
+
+example of fast test for dense experiment: (GPU only....)
+
+THEANO_FLAGS=device=gpu,floatX=float32 jobman cmdline DAESampling.SamplingdenseSDAEexp seed=1 path_data=amazon/all-domain-lab_unlab-50.vec ninputs=50  path_data_test=amazon/all-domain-test-50.vec zeros=0.8 ones=0.013 n_inp=50 n_hid=50 lr=0.01 pattern='inpnoise' ratio=0.02 scaling=False batchsize=10 batchsizeerr=1600 nepochs=10 epochs=[1,5,10] small=True regcoef=0. folds=2 act='rect' cost='CE' dense_size=7000
+
